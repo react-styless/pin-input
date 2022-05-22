@@ -7,8 +7,9 @@ interface Props {
   inputStyle?: React.CSSProperties;
   id?: string;
   onComplete?: (str: string) => void;
-  value: string;
-  setValue: (e: any) => void;
+  value?: string;
+  setValue?: (e: any) => void;
+  children: React.ReactElement | React.ReactElement[];
 }
 const PinInput: React.FC<Props> = ({
   id,
@@ -19,77 +20,69 @@ const PinInput: React.FC<Props> = ({
   className,
   inputStyle,
   onComplete,
+  children,
 }) => {
-  const arrayRef = React.useRef<any>([]);
-  const [targetIndex, setTargetIndex] = React.useState(0);
-
-  const valArr = React.useMemo(() => {
-    return value
-      .split('')
-      .concat(new Array(length - value.split('').length).fill(''));
-  }, [value]);
-  const handleChange = (index: number) => {
-    return (e: any) => {
-      const out = valArr
-        .map((item, i) => {
-          if (i === index) {
-            return e.target.value.slice(-1);
-          }
-          return item;
-        })
-        .join('');
-      setValue(out);
-      if (e.target.value) {
-        const nextIndex = index + 1;
-        const tIndex = nextIndex >= length ? length - 1 : nextIndex;
-        setTargetIndex(tIndex);
-        if (nextIndex >= length) {
-          if (onComplete) {
-            onComplete(out);
-            arrayRef.current[tIndex]?.blur();
-          }
-        } else {
-          arrayRef.current[tIndex]?.focus();
-        }
-      }
-    };
-  };
-
-  const handleBackspace = (index: number) => {
-    const tIndex = index - 1 < 0 ? 0 : index - 1;
-    arrayRef.current[tIndex]?.focus();
-    setTargetIndex(tIndex);
-  };
-
-  const handleKeyUp = (index: number) => (e: any) => {
-    if (e.keyCode === 8) {
-      handleBackspace(index);
+  const childrenRef = React.useRef<any[]>([]);
+  const indexRef = React.useRef(0);
+  const valueRef = React.useRef<string[]>([]);
+  const moveFocus = React.useCallback((dir: 'prev' | 'next') => {
+    const length = childrenRef.current.length;
+    const prev = indexRef.current;
+    const target =
+      dir === 'next' ? Math.min(prev + 1, length - 1) : Math.max(prev - 1, 0);
+    if (dir === 'prev') {
+      childrenRef.current[target].value = null;
     }
-  };
-  const forceFocus = (e: any) => {
-    arrayRef.current[targetIndex]?.focus();
-    e.preventDefault();
-    e.stopPropagation();
-  };
-  console.log(value);
+    if (target === length - 1 && prev === length - 1) {
+      childrenRef.current[target].blur();
+      onComplete?.(valueRef.current.join(''));
+      return;
+    }
+    childrenRef.current[target].focus();
+
+    indexRef.current = target;
+  }, []);
+
+  const handleChange = React.useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (e.target.value === '') return;
+      valueRef.current = valueRef.current.concat(e.target.value);
+      moveFocus('next');
+    },
+    [moveFocus]
+  );
+
+  const handleKeyUp = React.useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Backspace') {
+        // Backspace;
+        valueRef.current = valueRef.current.slice(0, -1);
+        moveFocus('prev');
+      }
+    },
+    []
+  );
+
+  const handleFocus = React.useCallback(() => {
+    const prev = indexRef.current;
+    childrenRef.current[prev].focus();
+  }, []);
+  React.useEffect(() => {
+    childrenRef.current[0].focus();
+  }, []);
+
   return (
-    <label className={className} htmlFor={`${id}-${targetIndex}`}>
-      {new Array(length).fill('').map((v, i) => {
-        return (
-          <input
-            onClick={forceFocus}
-            id={`${id}-${i}`}
-            placeholder={' '}
-            style={inputStyle}
-            key={i}
-            onKeyUp={handleKeyUp(i)}
-            ref={(el) => (arrayRef.current[i] = el)}
-            type={type}
-            value={valArr[i]}
-            onChange={handleChange(i)}
-          />
-        );
-      })}
+    <label>
+      {React.Children.map(children, (child, index) =>
+        React.cloneElement(child, {
+          ref: (ref: any) => (childrenRef.current[index] = ref),
+          onChange: handleChange,
+          onKeyUp: handleKeyUp,
+          onClick: handleFocus,
+          placeholder: ' ',
+          maxLength: 1,
+        })
+      )}
     </label>
   );
 };
