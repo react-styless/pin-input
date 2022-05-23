@@ -1,7 +1,12 @@
 {
-  "name": "pin-input",
-  "version": "0.1.0",
-  "private": true,
+  "name": "@react-styless/pin-input",
+  "homepage": "https://github.com/react-styless/pin-input",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/react-styless/pin-input.git"
+  },
+  "version": "0.0.1",
+  "private": false,
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.4",
     "@testing-library/react": "^13.2.0",
@@ -20,7 +25,8 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "publish:npm": "rm -rf dist && mkdir dist && babel src/lib -d dist --copy-files"
   },
   "eslintConfig": {
     "extends": [
@@ -39,5 +45,12 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.17.10",
+    "@babel/preset-react": "^7.16.7"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
