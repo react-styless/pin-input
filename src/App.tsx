@@ -15,6 +15,11 @@ function App() {
         <input type='text' className='input1' />
         <input type='text' className='input1' />
       </PinInput>
+      <PinInput onComplete={handleComplete}>
+        <input type='text' className='input2' />
+        <input type='text' className='input2' />
+        <input type='text' className='input2' />
+      </PinInput>
     </div>
   );
 }
