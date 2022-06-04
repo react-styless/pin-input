@@ -5,7 +5,7 @@
     "type": "git",
     "url": "https://github.com/react-styless/pin-input.git"
   },
-  "version": "0.2.0",
+  "version": "1.0.0",
   "private": false,
   "dependencies": {
     "@types/react": "^18.0.9",
